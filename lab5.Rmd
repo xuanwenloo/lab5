@@ -10,20 +10,47 @@ output: html_document
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 library(tidyverse)
+library(maps)
+library(lubridate)
 ```
 
 ```{r}
 # Load accident.csv file
 accident <- read.csv("https://raw.githubusercontent.com/yumouqiu/DS202-Spring2023/main/Practice/data/fars2016/accident.csv", stringsAsFactors = FALSE)
+
+states <- map_data("state")
+states %>% ggplot(aes(x = long, y = lat)) + geom_path(aes(group = group)) + 
+  geom_point(aes(x = LONGITUD, y = LATITUDE), size = 0.05, color = 'red', data = accident %>% filter(YEAR == 2016, LONGITUD < 0, LONGITUD > -130))
 ```
 
 # Part one: Accident data
 
 1. Are there some days of the week where more accidents happen than on others (use variable DAY_WEEK)?
 
+```{r}
+accident_day = accident %>% mutate(DAY_WEEK = factor(DAY_WEEK)) %>%
+  group_by(DAY_WEEK) %>% summarise(count = n())
+
+accident_day %>% ggplot(aes(x = DAY_WEEK)) + geom_bar(aes(weight = count))
+# Monday and the weekends has generally more accident counts than other days.
+```
+
 2. What time of the day do accidents happen (use variable HOUR)?
 
+```{r}
+accident %>% filter(HOUR <= 24) %>% group_by(HOUR) %>% summarise(count = n()) %>% ggplot(aes(x = HOUR)) +
+  geom_bar(aes(weight = count))
+
+# 6.00 pm has the highest rates of accident, possibly due to it being the time most people drive back from work
+```
+
 3. What is the number of accidents with at least one drunk driver (use variable DRUNK_DR)?
+
+```{r}
+count(accident %>% filter(DRUNK_DR > 0), NULL)
+# 8720
+```
+
 
 # Part two: Connecting data
 
