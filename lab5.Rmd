@@ -7,6 +7,13 @@ date: "2023-04-23"
 output: html_document
 ---
 
+Team members:
+
+- Roy Khoo
+- Xuan Wen Loo
+
+Git repo: https://github.com/xuanwenloo/lab5
+
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 library(tidyverse)
@@ -56,6 +63,36 @@ count(accident %>% filter(DRUNK_DR > 0), NULL)
 
 1. Connect to the person table. Identify drivers (PER_TYP == 1, see fars manual ) and subset on them.
 
+```{r}
+person <- read.csv("https://raw.githubusercontent.com/yumouqiu/DS202-Spring2023/main/Practice/data/fars2016/person.csv")
+
+driver <- subset(person, PER_TYP == 1)
+```
+
 2. Join accident and driver table (work out which variable(s) to use)
 
+```{r}
+acc_driver <- inner_join(accident, driver)
+```
+
 3. Tally the number of accidents by day of the week (DAY_WEEK), hour of the day (HOUR) and gender (SEX). Visualize the results!
+
+```{r, warning=FALSE}
+acc_driver %>%
+  group_by(DAY_WEEK, HOUR, SEX) %>%
+  summarize(total = n()) %>%
+  ungroup()
+
+acc_driver <- subset(acc_driver, SEX == 1 | SEX == 2)
+acc_driver$SEX <- ifelse(acc_driver$SEX == 1, "male", "female")
+acc_driver$SEX <- as.factor(acc_driver$SEX)
+acc_driver <- acc_driver %>% filter(HOUR <= 24)
+
+ggplot(acc_driver, aes(x=HOUR, fill=SEX)) + 
+  geom_bar(position="dodge") +
+  facet_wrap(~DAY_WEEK) +
+  ggtitle("Accidents by Hour of Day and Day of Week") +
+  xlab("Hour of Day") +
+  ylab("Number of Accidents")
+```
+
